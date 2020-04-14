@@ -57,5 +57,4 @@ main = do 
   putStrLn . show $ dist (x,y)
   putStr "part 2: "
   let (e, xs) = foldl move' (N, [(0,0)]) i
-  putStrLn . show $ map (repeatInFirstN xs) [0,1..(length xs - 1)]
   putStrLn . show . dist $ firstMatch xs
