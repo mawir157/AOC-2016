@@ -1,7 +1,6 @@
 import Data.List
 
-byChar ss = map (getNth ss) [0..7]
-  where getNth ss n = map (!!n) ss
+byChar ss = map (\x -> map (!!x) ss) [0..7]
 
 mostComp x y = compare (snd y) (snd x)
 
