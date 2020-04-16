@@ -30,6 +30,5 @@ main = do
   putStr "Part 1: "
   putStrLn . show . length $ decomp l
 
-  putStr "Part 12: "
+  putStr "Part 2: "
   putStrLn . show $ dlen l
-
