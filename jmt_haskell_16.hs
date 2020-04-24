@@ -1,14 +1,6 @@
 if' True  x _ = x
 if' False _ x = x
 
--- parseInput :: String -> [Bool]
--- parseInput [] = []
--- parseInput (s:ss) = (if' (s == '0') [False] [True]) ++ parseInput ss 
-
--- deparse :: [Bool] -> String
--- deparse [] = ""
--- deparse (b:bs) = [(if' b '1' '0')] ++ (deparse bs)
-
 reduce :: String -> String
 reduce bs
   | odd $ length bs = bs
