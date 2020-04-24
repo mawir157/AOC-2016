@@ -19,7 +19,6 @@ parseLine s
   | "based" == ss!!1    = (ROTP, ord (head $ ss!!6), 0)
   | "left" == ss!!1     = (ROTA, read (ss!!2) :: Int, 0)
   | "right" == ss!!1    = (ROTA, (-1) * (read (ss!!2) :: Int), 0)
-  | otherwise =  error s
   where ss = splitOn " " s 
 
 insertAt :: a -> Int -> [a] -> [a]
@@ -65,7 +64,6 @@ tick s (c,x,y)
   | SWPL == c = swapLet s (chr x) (chr y)
   | ROTP == c = rotatePos s (chr x)
   | ROTA == c = rotateAbs s x
-  | otherwise = error "Go fuck yourself"
 
 mapsTo :: [Instruction] -> String -> String -> Bool
 mapsTo i target candidate = (image == target)
