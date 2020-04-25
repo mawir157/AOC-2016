@@ -15,7 +15,7 @@ parseLine s
   | "move" == ss!!0     = (MOVE, read (ss!!2) :: Int, read (ss!!5) :: Int)
   | "reverse" == ss!!0  = (REVS, read (ss!!2) :: Int, read (ss!!4) :: Int)
   | "position" == ss!!1 = (SWPP, read (ss!!2) :: Int, read (ss!!5) :: Int)
-  | "letter" == ss!!1     = (SWPL, ord (head $ ss!!2), ord (head $ ss!!5))
+  | "letter" == ss!!1   = (SWPL, ord (head $ ss!!2), ord (head $ ss!!5))
   | "based" == ss!!1    = (ROTP, ord (head $ ss!!6), 0)
   | "left" == ss!!1     = (ROTA, read (ss!!2) :: Int, 0)
   | "right" == ss!!1    = (ROTA, (-1) * (read (ss!!2) :: Int), 0)
@@ -73,11 +73,11 @@ main :: IO()
 main = do
   f <- readFile "input_21.txt"
   let i = map (parseLine) $ lines f
-  putStrLn "part 1: "
+  putStr "part 1: "
   let iString = "abcdefgh"
   let k = foldl tick iString i 
   putStrLn $ show k
-  putStrLn "part 2: " -- I am lazy
+  putStr "part 2: " -- I am lazy
   let perms = permutations iString
   let s = fromJust $ find (mapsTo i "fbgdceah") perms
   putStrLn . show $ s
