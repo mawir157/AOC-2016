@@ -1,13 +1,29 @@
 import Data.List
 import Data.List.Split
+import qualified Data.Sequence as Seq
 
 import Debug.Trace
+
+oddElts :: [a] -> [a]
+oddElts [] = []
+oddElts [x] = [x]
+oddElts (x:y:xs) = [x] ++ oddElts xs
 
 sublists  _     0 = [[]]
 sublists  []    _ = []
 sublists (x:xs) n = sublists xs n ++ map (x:) (sublists xs $ n - 1)
 
 movable xs = (sublists xs 2) ++ chunksOf 1 xs
+
+replace :: Int -> a -> [a] -> [a]
+replace _ _ [] = []
+replace n v (x:xs)
+   | n == 0    = v:xs
+   | otherwise = x:replace (n-1) v xs
+
+replaceMult ::  a -> [a] -> [Int] ->[a]
+replaceMult _ xs []     = xs
+replaceMult v xs (n:ns) = replaceMult v (replace n v xs) ns
 
 -- Elevator must contain at least one component to move
 -- Elevator can carry at most two components at a time
@@ -18,70 +34,69 @@ movable xs = (sublists xs 2) ++ chunksOf 1 xs
 -- OK  Ag Am Bg ..
 -- OK  .. Am .. Bm.
 
-data Mode = CHIP | GEN deriving (Eq, Show)
-type Component = (Char, Mode)
+-- F4 . .. .. .. .. .. .. .. .. .. ..
+-- F3 . .. .. .. .. .. .. Qg Qm Rg Rm
+-- F2 . .. .. .. Pm .. Sm .. .. .. ..
+-- F1 E Tg Tm Pg .. Sg .. .. .. .. ..
 
-type Floor = [Component]
-type Facility = ([Floor], Int)
+-- == F1 F1 F1 F1 F2 F1 F2 F3 F3 F3 F3
 
-isChip :: Component -> Bool
-isChip (c, m) = m == CHIP
+data Floor = F1 | F2 | F3 | F4 deriving (Eq, Show)
+type Facility = [Floor]
 
-isGen :: Component -> Bool
-isGen (c, m) = m == GEN
+chips :: Facility -> [Floor]
+chips f = drop 1 $ oddElts f
 
-fEmpty :: Floor -> Bool
-fEmpty f = length f == 0 
+gens :: Facility -> [Floor]
+gens (e:cs) = oddElts cs
 
-fBad :: Floor -> Bool
-fBad f
-  |(length isolated == 0) = False
-  | otherwise             = (length (gens) /= 0)
-  where chips = map (fst) $ filter (isChip) f
-        gens =  map (fst) $ filter (isGen) f
-        isolated = (chips \\ gens)
+facBad :: Facility -> Bool
+facBad f
+  | length i == 0 = False
+  | otherwise     = length badChips > 0
+  where gs = gens f
+        i = filter (\[g,m] -> g /= m) (chunksOf 2 $ tail f)
+        isoChips = map (!!1) i
+        badChips = filter (\x -> x `elem` gs) isoChips
 
-facGood :: Facility -> Bool
-facGood (fs,_) = all (not.fBad) fs
+facEnd :: Floor -> Facility -> Bool
+facEnd f fac = all (== f) fac
 
-mvFloor :: [Floor] -> Int -> Int -> [Component] -> [Floor]
-mvFloor fs from to comps
-  | from == 0 && to == 1 = [f] ++ [t] ++ [fs!!2] ++ [fs!!3]
-  | from == 1 && to == 2 = [fs!!0] ++ [f] ++ [t] ++ [fs!!3]
-  | from == 2 && to == 3 = [fs!!0] ++ [fs!!1] ++ [f] ++ [t]
-  | from == 3 && to == 2 = [fs!!0] ++ [fs!!1] ++ [t] ++ [f]
-  | from == 2 && to == 1 = [fs!!0] ++ [t] ++ [f] ++ [fs!!3]
-  | from == 1 && to == 0 = [t] ++ [f] ++ [fs!!2] ++ [fs!!3]
-  where f = (fs!!from) \\ comps
-        t = (fs!!to) ++ comps
+update :: Facility -> Floor -> [Facility]
+update (from:cs) to
+  | length ind == 0 = []
+  | otherwise       = goodNhbrs
+  where ind = elemIndices from cs
+        mv = movable ind
+        nhbrs = map (replaceMult to cs) mv
+        nhbrs' = map (\x -> [to] ++ x) nhbrs
+        goodNhbrs = filter (not.facBad) nhbrs'
 
-allLegal :: Facility -> [Facility]
-allLegal (fs, e)
-  | e == 0 = nub $ filter (facGood) (zip mv01 (repeat 1))
-  | e == 1 = nub $ filter (facGood) (zip mv12 (repeat 2) ++ zip mv10 (repeat 0)) 
-  | e == 2 = nub $ filter (facGood) (zip mv21 (repeat 1) ++ zip mv23 (repeat 3))
-  | e == 3 = nub $ filter (facGood) (zip mv32 (repeat 2))
-  where mv = movable (fs!!e)
-        mv01 = map (mvFloor fs 0 1) mv
-        mv12 = map (mvFloor fs 1 2) mv
-        mv23 = map (mvFloor fs 2 3) mv
-        mv32 = map (mvFloor fs 3 2) mv
-        mv21 = map (mvFloor fs 2 1) mv
-        mv10 = map (mvFloor fs 1 0) mv
 
-run :: Int -> Facility -> Int
-run c f 
-  | end f             = c
-  | c > 1000          = 1000000
-  | length legal == 0 = 1000000
-  | otherwise = minimum $ map (run c') legal
-  where legal = allLegal f
-        c' = traceShowId $ c+1
+neighbours ::  Facility -> [Facility]
+neighbours f
+  | head f == F1 = update f F2
+  | head f == F2 = nub ((update f F1) ++ (update f F3))
+  | head f == F3 = nub ((update f F2) ++ (update f F4))
+  | head f == F4 = update f F3  
 
-end :: Facility -> Bool
-end (floors, elevator) = bf && be
-  where bf = all (fEmpty) $ init floors
-        be = (elevator == 3)
+search :: [Facility] -> Int -> Facility -> Int
+search seen dist here 
+  | facEnd F4 here       = dist 
+  | length goodNbrs == 0 = 10000000
+  | otherwise            = minimum $ map (search seen' (dist+1)) goodNbrs 
+  where nbrs = neighbours here
+        goodNbrs = filter (\x -> not (x `elem` seen)) nbrs
+        seen' = [here] ++ seen
+
+bfSearch :: [Facility] -> Int -> [Facility] -> Int
+bfSearch seen dist here
+  | any (facEnd F4) here = dist
+  | otherwise            = bfSearch seen' (dist') goodNbrs
+  where dist' = traceShowId $ dist + 1
+        seen' = here ++ seen
+        nbrs = concat $ map (neighbours) here
+        goodNbrs = filter (\x -> not (x `elem` seen)) nbrs
 
 main :: IO()
 main = do
@@ -90,11 +105,10 @@ main = do
 -- F2 .  Hg .. .. .. 
 -- F1 E  .. Hm .. Lm 
 
+  let test = [F1, F2, F1, F3, F1] 
+
 -- 4^5 states (1024)
-  let f = ([[('H', CHIP),('L', CHIP)],
-            [('H', GEN)],
-            [('L', GEN)],
-            []], 0)
+
 -- F4 . .. .. .. .. .. .. .. .. .. ..
 -- F3 . .. .. .. .. .. .. Qg Qm Rg Rm
 -- F2 . .. .. .. Pm .. Sm .. .. .. ..
@@ -102,19 +116,150 @@ main = do
 
 -- 4^11 states (4194304)
 
-  let f = ([[('T', GEN),('T', CHIP),('P', GEN),('S', GEN)],
-            [('P', CHIP),('S', CHIP)],
-            [('Q', GEN),('Q', CHIP),('R', GEN),('R', CHIP)],
-            []], 0)
-
-
-  let k = map (fst) $ allLegal f
-  putStrLn $ show k
+  let input = [F1,F1,F1,F1,F2,F1,F2,F3,F3,F3,F3]
 
   putStr "Part 1: "
-  let t = run 0 f
-  putStrLn $ show t
+  -- let k = bfSearch [] 0 [test]
+  -- putStrLn $ show k
 
-  -- putStr "Part 2: "
-  -- let t = run (f, 0)
-  -- putStrLn $ show t
+  putStr "Part 2: "
+  let seen = []
+  let here = [input]
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+  let seen' = (here ++ seen)
+  let seen = seen'
+  let nbrs = concat $ map (neighbours) here
+  let here = filter (\x -> not (x `elem` seen)) nbrs
+  -- putStrLn $ show seen
+  -- putStrLn $ show here
+  putStrLn . show $ any (facEnd F4) here
+  putStrLn ""
+
+-- [F1, F2, F1, F3, F1]
+-- [F2, F2, F2, F3, F1]
+-- [F3, F3, F3, F3, F1]
+-- [F2, F3, F2, F3, F1]
+-- [F1, F3, F1, F3, F1]
+-- [F2, F3, F2, F3, F2]
+-- [F3, F3, F3, F3, F3]
+-- [F4, F3, F4, F3, F4]
+-- [F3, F3, F3, F3, F4]
+-- [F4, F4, F3, F4, F4]
+-- [F3, F4, F3, F4, F3]
+-- [F4, F4, F4, F4, F4]
