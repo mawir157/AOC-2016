@@ -85,8 +85,6 @@ main :: IO()
 main = do
   f <- readFile "input_23.txt"
   let l = map (parseLine) $ lines f
-  -- let l = map (parseLine) ["cpy 2 a", "tgl a", "tgl a", "tgl a",
-  --                          "cpy 1 a", "dec a", "dec a"]
 
   putStr "Part 1: "
   let machine1 = setValue machine ('a', 6)
