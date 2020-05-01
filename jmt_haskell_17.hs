@@ -4,7 +4,6 @@ import qualified Data.ByteArray as BA
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C
 
-import Debug.Trace
 import Data.List
 import Data.Maybe
 
@@ -17,9 +16,8 @@ routeHash  :: String -> String
 routeHash s = take 4 $ show (hashWith MD5 (C.pack s))
 
 hashDirs :: String -> [Bool]
-hashDirs s = m'
+hashDirs s = map (\x -> x `elem` "bcdef") m
   where m = routeHash s
-        m' = map (\x -> x `elem` "bcdef") m
 
 neighbours :: (Pos,String) -> [(Pos,String)]
 neighbours ((x,y), route)  = du ++ dd ++ dl ++ dr
@@ -53,7 +51,6 @@ main = do
   let s = bfSearch [((0,0), passcode)]
   putStrLn $ show s
 
-  let passcode = "rrrbmfta"
   putStr "Part 2: "
   let s = maxSearch ((0,0), passcode)
   putStrLn $ show (s - length passcode)
