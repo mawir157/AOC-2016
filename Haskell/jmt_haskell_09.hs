@@ -25,7 +25,7 @@ dlen s
 
 main :: IO()
 main = do
-  f <- readFile "input_09.txt"
+  f <- readFile "../input/input09.txt"
   let l = head $ lines f
   putStr "Part 1: "
   putStrLn . show . length $ decomp l

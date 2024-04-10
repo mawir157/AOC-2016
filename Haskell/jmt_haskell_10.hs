@@ -57,7 +57,7 @@ findCompare v bs rs
 
 main :: IO()
 main = do
-  f <- readFile "input_10.txt"
+  f <- readFile "../input/input10.txt"
   let l = lines f
   let bots = foldl initialBots [] (filter (\x -> (head x) == 'v') l)
   let rules = map (buildRules) $ filter (\x -> (head x) == 'b') l

@@ -127,7 +127,7 @@ getPress2 :: Char -> String -> Char
 getPress2 n ss = foldl finger2 n ss
 
 main = do 
-  f <- readFile "input_02.txt"
+  f <- readFile "../input/input02.txt"
   let i = lines f
   putStr "Part 1: "
   putStrLn . show $ drop 1 $ scanl getPress '5' i

@@ -11,7 +11,7 @@ getFreq comp ss = fst $ head ordered
         ordered = sortBy (comp) freq
 
 main = do 
-  f <- readFile "input_06.txt"
+  f <- readFile "../input/input06.txt"
   let s = byChar $ lines f
   putStr "Show 1: "
   putStrLn . show $ map (getFreq mostComp) s

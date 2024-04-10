@@ -57,7 +57,7 @@ routeLength es ss
 
 main :: IO()
 main = do
-  f <- readFile "input_24.txt"
+  f <- readFile "../input/input24.txt"
   let s = parseInput 0 $ lines f
 
   -- let test = ["###########",

@@ -71,7 +71,7 @@ mapsTo i target candidate = (image == target)
 
 main :: IO()
 main = do
-  f <- readFile "input_21.txt"
+  f <- readFile "../input/input21.txt"
   let i = map (parseLine) $ lines f
   putStr "part 1: "
   let iString = "abcdefgh"

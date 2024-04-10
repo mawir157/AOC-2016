@@ -28,7 +28,7 @@ refactor x = [(fst' (x3!!0), fst' (x3!!1), fst' (x3!!2)),
   where x3 = take 3 x
 
 main = do 
-  f <- readFile "input_03.txt"
+  f <- readFile "../input/input03.txt"
   let i = map parseInput $ lines f
   putStr "Part 1: "
   putStrLn . show $ length $ filter (\x -> isTriangle x) i

@@ -63,7 +63,7 @@ parseLine s
 
 main :: IO()
 main = do
-  f <- readFile "input_12.txt"
+  f <- readFile "../input/input12.txt"
   let l = map (parseLine) $ lines f
 
   putStr "Part 1: "

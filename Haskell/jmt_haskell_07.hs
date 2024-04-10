@@ -35,7 +35,7 @@ part2Match :: ([String],[String]) -> Bool
 part2Match codes = or $ map (matchPair codes) part2Pairs
 
 main = do 
-  f <- readFile "input_07.txt"
+  f <- readFile "../input/input07.txt"
   let i = map (parseInput ([],[])) $ lines f
   let k = map goodCode i
   putStr "Part 1: "

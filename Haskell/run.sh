@@ -5,9 +5,9 @@ do
   then
     if [[ [18] =~ $i ]]
     then
-      ghc jmt_haskell_$i.hs -O2 -XBangPatterns
+      stack ghc jmt_haskell_$i.hs -O2 -XBangPatterns
     else 
-      ghc jmt_haskell_$i.hs -O2
+      stack ghc jmt_haskell_$i.hs -O2
     fi
   fi
 done

@@ -50,7 +50,7 @@ dist :: (Int, Int) -> Int
 dist (x,y) = abs x + abs y
 
 main = do 
-  f <- readFile "input_01.txt"
+  f <- readFile "../input/input01.txt"
   let i = parseInput f
   putStr "part 1: "
   let (d, (x,y)) = foldl move (N, (0,0)) i

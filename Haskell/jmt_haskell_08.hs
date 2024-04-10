@@ -61,7 +61,7 @@ rowSum (x:xs)
   | otherwise = rowSum xs
 
 main = do 
-  f <- readFile "input_08.txt"
+  f <- readFile "../input/input08.txt"
   let i = map parseInput $ lines f
   let grid' = foldl (applyInstr) grid i
 

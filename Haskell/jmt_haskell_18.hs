@@ -28,7 +28,7 @@ strictCount n (s, i) = strictCount (n-1) (s',i')
 
 main :: IO()     
 main = do
-  f <- readFile "input_18.txt"
+  f <- readFile "../input/input18.txt"
   let s = head $ lines f
   putStr "Part 1: "
   let s' = take 40 $ iterate nextRow s

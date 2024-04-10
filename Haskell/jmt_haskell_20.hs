@@ -50,7 +50,7 @@ findGaps (x:y:xs) = [(snd x + 1, fst y - 1)] ++ findGaps (y:xs)
 
 main :: IO()
 main = do
-  f <- readFile "input_20.txt"
+  f <- readFile "../input/input20.txt"
   let s = map (parseInput) $ lines f
   putStr "Part 1: "
   let t = combine' $ sortFirst s

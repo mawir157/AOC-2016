@@ -37,7 +37,7 @@ snd' (_,x,_) = x
 thd' (_,_,x) = x
 
 main = do 
-  f <- readFile "input_04.txt"
+  f <- readFile "../input/input04.txt"
   let i = map parseInput $ lines f
   let gr = filter (\x -> goodRoom x) i
   putStr "Part 1: "

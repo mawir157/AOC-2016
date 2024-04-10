@@ -53,7 +53,7 @@ viable (_, (used, _, _)) (_, (_, avail, _))
 --------------------------------------------------------------------------------
 main :: IO()
 main = do
-  f <- readFile "input_22.txt"
+  f <- readFile "../input/input22.txt"
   let i = map (parseLine) . drop 2 $ lines f
 
   putStr "Part 1: "

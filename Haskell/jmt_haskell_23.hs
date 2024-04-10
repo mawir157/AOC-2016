@@ -83,7 +83,7 @@ decompiled n = (product [1..n]) + (96*79)
 
 main :: IO()
 main = do
-  f <- readFile "input_23.txt"
+  f <- readFile "../input/input23.txt"
   let l = map (parseLine) $ lines f
 
   putStr "Part 1: "
